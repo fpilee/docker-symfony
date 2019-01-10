@@ -2,9 +2,12 @@ version: '2'
 
 services:
     db:
-        image: mysql
+        image: mysql:5.7
         volumes:
-            - "./.data/db:/var/lib/mysql"
+            - "mysql-data-vol:/var/lib/mysql"
+        command: ["--default-authentication-plugin=mysql_native_password"]
+        ports:
+            - "3306:3306"
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -17,7 +20,8 @@ services:
                 TIMEZONE: ${TIMEZONE}
         volumes:
             - ${SYMFONY_APP_PATH}:/var/www/symfony
-            - ./logs/symfony:/var/www/symfony/app/logs
+        links:
+            - db            
     nginx:
         build: nginx
         ports:
@@ -26,7 +30,7 @@ services:
             - php
         volumes:
             - ./logs/nginx/:/var/log/nginx
-    elk:
+   elk:
         image: willdurand/elk
         ports:
             - 81:80
@@ -36,3 +40,5 @@ services:
         volumes_from:
             - php
             - nginx
+volumes:
+  mysql-data-vol: {}
